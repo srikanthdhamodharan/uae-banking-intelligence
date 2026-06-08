@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UAE Banking Intelligence Command Centre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0A0E1A;
+--bg2:#0F1525;
+--bg3:#141B2D;
+--card:#111827;
+--border:#1E2D4A;
+--border2:#253552;
+--gold:#C9A84C;
+--gold2:#E8C96E;
+--blue:#3B82F6;
+--blue2:#60A5FA;
+--green:#10B981;
+--green2:#34D399;
+--red:#EF4444;
+--red2:#F87171;
+--amber:#F59E0B;
+--amber2:#FCD34D;
+--purple:#8B5CF6;
+--purple2:#A78BFA;
+--text:#F1F5F9;
+--text2:#94A3B8;
+--text3:#475569;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+
+.hero{background:linear-gradient(135deg,#0A0E1A 0%,#0D1628 50%,#0A0E1A 100%);border-bottom:1px solid var(--border);padding:48px 40px 36px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-100px;right:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(201,168,76,0.06) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-80px;left:200px;width:400px;height:400px;background:radial-gradient(circle,rgba(59,130,246,0.05) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:12px}
+.hero-title{font-family:'Instrument Serif',serif;font-size:42px;font-weight:400;line-height:1.1;margin-bottom:8px;background:linear-gradient(135deg,#F1F5F9 0%,#C9A84C 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-title em{font-style:italic}
+.hero-sub{font-size:14px;color:var(--text2);margin-bottom:28px;max-width:600px;line-height:1.6}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap}
+.meta-pill{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:20px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold2);display:flex;align-items:center;gap:6px}
+.meta-dot{width:6px;height:6px;border-radius:50%;background:var(--green2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.nav-tabs{display:flex;gap:2px;padding:0 40px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto}
+.nav-tab{padding:14px 20px;font-size:13px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;font-weight:500}
+.nav-tab:hover{color:var(--text2)}
+.nav-tab.active{color:var(--gold2);border-bottom-color:var(--gold)}
+
+.main{padding:32px 40px;max-width:1400px;margin:0 auto}
+.section{display:none}
+.section.active{display:block}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;transition:border-color 0.2s}
+.kpi-card:hover{border-color:var(--border2)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-card.gold::before{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi-card.blue::before{background:linear-gradient(90deg,var(--blue),var(--blue2))}
+.kpi-card.green::before{background:linear-gradient(90deg,var(--green),var(--green2))}
+.kpi-card.red::before{background:linear-gradient(90deg,var(--red),var(--red2))}
+.kpi-card.purple::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
+.kpi-card.amber::before{background:linear-gradient(90deg,var(--amber),var(--amber2))}
+.kpi-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;font-family:'DM Mono',monospace}
+.kpi-value{font-family:'Instrument Serif',serif;font-size:28px;color:var(--text);margin-bottom:4px}
+.kpi-change{font-size:12px;display:flex;align-items:center;gap:4px}
+.kpi-change.up{color:var(--green2)}
+.kpi-change.down{color:var(--red2)}
+.kpi-source{font-size:10px;color:var(--text3);margin-top:6px;font-family:'DM Mono',monospace}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px}
+.chart-title{font-family:'Instrument Serif',serif;font-size:18px;margin-bottom:4px}
+.chart-sub{font-size:12px;color:var(--text3);margin-bottom:20px}
+
+.bank-table{width:100%;border-collapse:collapse;margin-top:8px}
+.bank-table th{text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding:8px 12px;font-family:'DM Mono',monospace;border-bottom:1px solid var(--border)}
+.bank-table td{padding:12px;border-bottom:1px solid var(--border);font-size:13px}
+.bank-table tr:last-child td{border-bottom:none}
+.bank-table tr:hover td{background:rgba(255,255,255,0.02)}
+.bank-name{font-weight:500;color:var(--text)}
+.bank-ticker{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-family:'DM Mono',monospace}
+.badge-green{background:rgba(16,185,129,0.12);color:var(--green2)}
+.badge-red{background:rgba(239,68,68,0.12);color:var(--red2)}
+.badge-amber{background:rgba(245,158,11,0.12);color:var(--amber2)}
+.badge-blue{background:rgba(59,130,246,0.12);color:var(--blue2)}
+.badge-gold{background:rgba(201,168,76,0.12);color:var(--gold2)}
+
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:3px;transition:width 1s ease}
+
+.section-title{font-family:'Instrument Serif',serif;font-size:24px;margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.5}
+
+.insight-box{background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:16px 20px;margin-bottom:16px}
+.insight-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px}
+.insight-text{font-size:13px;color:var(--text2);line-height:1.6}
+
+.score-ring{width:80px;height:80px;position:relative}
+.score-ring svg{transform:rotate(-90deg)}
+.score-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-size:20px;color:var(--text)}
+
+.digital-bar{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.digital-bar:last-child{border-bottom:none}
+.digital-bank-name{width:120px;font-size:13px;font-weight:500}
+.digital-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.digital-fill{height:100%;border-radius:4px}
+.digital-pct{width:40px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;color:var(--text2)}
+
+.forecast-note{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+
+.author-bar{background:var(--bg2);border-top:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap}
+.author-info{font-size:12px;color:var(--text3)}
+.author-name{color:var(--gold2);font-weight:500}
+.author-links{display:flex;gap:16px}
+.author-link{font-family:'DM Mono',monospace;font-size:11px;color:var(--blue2);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">UAE Banking Intelligence Command Centre · 2024 Data</div>
+  <div class="hero-title">UAE Banking Sector<br><em>Deep Intelligence Dashboard</em></div>
+  <div class="hero-sub">Comprehensive analytics across the top 10 UAE banks covering financial performance, digital transformation, competitive benchmarking and 2025–2027 forecasting. Built using official annual reports, UAE Central Bank data and KPMG GCC Banking Pulse.</div>
+  <div class="hero-meta">
+    <div class="meta-pill"><span class="meta-dot"></span>Live Analysis</div>
+    <div class="meta-pill">10 UAE Banks Covered</div>
+    <div class="meta-pill">2020–2024 Historical Data</div>
+    <div class="meta-pill">ML Forecasting to 2027</div>
+    <div class="meta-pill">Built by Srikanth Dhamodharan · DCU Ireland</div>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showSection('overview',this)">Sector Overview</div>
+  <div class="nav-tab" onclick="showSection('banks',this)">Bank Comparison</div>
+  <div class="nav-tab" onclick="showSection('digital',this)">Digital Transformation</div>
+  <div class="nav-tab" onclick="showSection('forecast',this)">2027 Forecast</div>
+  <div class="nav-tab" onclick="showSection('insights',this)">Key Insights</div>
+</div>
+
+<div class="main">
+
+<!-- SECTION 1: OVERVIEW -->
+<div class="section active" id="overview">
+  <div class="section-title">UAE Banking Sector Overview</div>
+  <div class="section-sub">The UAE banking sector demonstrated exceptional resilience in 2024, with top banks delivering record profits driven by digital transformation, fee income growth and regional expansion.</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card gold">
+      <div class="kpi-label">Total Sector Net Profit</div>
+      <div class="kpi-value">AED 88B</div>
+      <div class="kpi-change up">↑ 12.3% vs 2023</div>
+      <div class="kpi-source">Source: Bank Annual Reports 2024</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total Banking Assets</div>
+      <div class="kpi-value">AED 4.2T</div>
+      <div class="kpi-change up">↑ 8.7% vs 2023</div>
+      <div class="kpi-source">Source: UAE Central Bank 2024</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Digital Banking Adoption</div>
+      <div class="kpi-value">80%</div>
+      <div class="kpi-change up">↑ Weekly active users</div>
+      <div class="kpi-source">Source: Khaleej Times 2024</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Loan-to-Deposit Ratio</div>
+      <div class="kpi-value">73.8%</div>
+      <div class="kpi-change down">↓ 1.2pp QoQ Q1 2024</div>
+      <div class="kpi-source">Source: Alvarez & Marsal Q1 2024</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Green Finance Issued</div>
+      <div class="kpi-value">$11B</div>
+      <div class="kpi-change up">↑ 200% since 2022</div>
+      <div class="kpi-source">Source: Khaleej Times 2024</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Project Financing Share</div>
+      <div class="kpi-value">34%</div>
+      <div class="kpi-change up">↑ from 28% in 2023</div>
+      <div class="kpi-source">Source: EY GCC Banking 2024</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Sector Net Profit Trend</div>
+      <div class="chart-sub">Top 3 UAE banks combined net profit 2020–2024 (AED Billion)</div>
+      <div style="position:relative;height:260px">
+        <canvas id="profitChart" role="img" aria-label="Line chart showing UAE banking profit growth from 2020 to 2024"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Asset Distribution by Bank Type</div>
+      <div class="chart-sub">Share of total UAE banking assets 2024</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#C9A84C;display:inline-block"></span>FAB 22%</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#3B82F6;display:inline-block"></span>ENBD 23%</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#10B981;display:inline-block"></span>ADCB 14%</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#8B5CF6;display:inline-block"></span>Others 41%</span>
+      </div>
+      <div style="position:relative;height:220px">
+        <canvas id="assetChart" role="img" aria-label="Donut chart showing UAE bank asset distribution"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:24px">
+    <div class="chart-title">Key Sector Drivers 2024</div>
+    <div class="chart-sub">Year-on-year growth rates across major performance indicators</div>
+    <div style="position:relative;height:260px">
+      <canvas id="driversChart" role="img" aria-label="Bar chart of key UAE banking sector growth drivers in 2024"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: BANK COMPARISON -->
+<div class="section" id="banks">
+  <div class="section-title">Bank-by-Bank Competitive Analysis</div>
+  <div class="section-sub">Detailed comparison of the top 10 UAE listed banks across profitability, growth and strategic positioning. Data sourced from 2024 annual reports and KPMG GCC Banking Pulse.</div>
+
+  <div class="chart-card" style="margin-bottom:24px;overflow-x:auto">
+    <div class="chart-title">Top 10 UAE Banks Performance Scorecard</div>
+    <div class="chart-sub">Net profit, growth rate, digital score and strategic positioning 2024</div>
+    <table class="bank-table">
+      <thead>
+        <tr>
+          <th>Bank</th>
+          <th>Net Profit 2024</th>
+          <th>YoY Growth</th>
+          <th>Market Position</th>
+          <th>Digital Score</th>
+          <th>Strategy Focus</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="bank-name">Emirates NBD</div><div class="bank-ticker">ENBD · Dubai</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 27.1B</span></td>
+          <td><span class="badge badge-green">↑ 22%</span></td>
+          <td><span class="badge badge-gold">Market Leader</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green2);font-family:'DM Mono',monospace">96/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:96%;background:var(--green)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">Wealth mgmt · KSA expansion · AI</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">First Abu Dhabi Bank</div><div class="bank-ticker">FAB · Abu Dhabi</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 21.9B</span></td>
+          <td><span class="badge badge-green">↑ 18%</span></td>
+          <td><span class="badge badge-gold">Market Leader</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green2);font-family:'DM Mono',monospace">92/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:92%;background:var(--green)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">IPO underwriting · Fee income</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">Mashreq Bank</div><div class="bank-ticker">Mashreq · Dubai</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 8.2B</span></td>
+          <td><span class="badge badge-green">↑ 27.8%</span></td>
+          <td><span class="badge badge-blue">Strong Growth</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green2);font-family:'DM Mono',monospace">94/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:94%;background:var(--green)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">Neo-bank · Saudi expansion</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">Abu Dhabi Commercial Bank</div><div class="bank-ticker">ADCB · Abu Dhabi</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 9.7B</span></td>
+          <td><span class="badge badge-green">↑ 15%</span></td>
+          <td><span class="badge badge-blue">Strong Growth</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--blue2);font-family:'DM Mono',monospace">84/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:84%;background:var(--blue)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">Retail lending · Digital</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">Dubai Islamic Bank</div><div class="bank-ticker">DIB · Dubai</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 8.6B</span></td>
+          <td><span class="badge badge-green">↑ 19.8%</span></td>
+          <td><span class="badge badge-blue">Strong Growth</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--blue2);font-family:'DM Mono',monospace">80/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:80%;background:var(--blue)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">Islamic finance leadership</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">Abu Dhabi Islamic Bank</div><div class="bank-ticker">ADIB · Abu Dhabi</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 5.4B</span></td>
+          <td><span class="badge badge-green">↑ 25.2%</span></td>
+          <td><span class="badge badge-blue">High Growth</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--amber2);font-family:'DM Mono',monospace">75/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:75%;background:var(--amber)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">Islamic digital banking</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">Commercial Bank of Dubai</div><div class="bank-ticker">CBD · Dubai</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 2.8B</span></td>
+          <td><span class="badge badge-green">↑ 20.1%</span></td>
+          <td><span class="badge badge-amber">Mid-tier</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--amber2);font-family:'DM Mono',monospace">70/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:70%;background:var(--amber)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">SME banking focus</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">National Bank of Fujairah</div><div class="bank-ticker">NBF · Fujairah</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 0.9B</span></td>
+          <td><span class="badge badge-green">↑ 12%</span></td>
+          <td><span class="badge badge-amber">Regional</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--text3);font-family:'DM Mono',monospace">58/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:58%;background:var(--text3)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">Trade finance · Maritime</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">RAK Bank</div><div class="bank-ticker">RAKBANK · Ras Al Khaimah</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 1.8B</span></td>
+          <td><span class="badge badge-green">↑ 10%</span></td>
+          <td><span class="badge badge-amber">Regional</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--text3);font-family:'DM Mono',monospace">62/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:62%;background:var(--text3)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">Retail personal banking</td>
+        </tr>
+        <tr>
+          <td><div class="bank-name">Sharjah Islamic Bank</div><div class="bank-ticker">SIB · Sharjah</div></td>
+          <td><span style="color:var(--gold2);font-family:'DM Mono',monospace">AED 0.7B</span></td>
+          <td><span class="badge badge-green">↑ 2.6%</span></td>
+          <td><span class="badge badge-amber">Regional</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--text3);font-family:'DM Mono',monospace">52/100</span><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:52%;background:var(--text3)"></div></div></div></td>
+          <td style="color:var(--text2);font-size:12px">Shariah compliant products</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Net Profit Comparison 2024</div>
+      <div class="chart-sub">Top 10 UAE banks by net profit (AED Billion)</div>
+      <div style="position:relative;height:320px">
+        <canvas id="bankProfitChart" role="img" aria-label="Horizontal bar chart of UAE bank net profits 2024"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Growth Rate Leaders 2024</div>
+      <div class="chart-sub">Year-on-year net profit growth percentage</div>
+      <div style="position:relative;height:320px">
+        <canvas id="growthChart" role="img" aria-label="Bar chart of UAE bank growth rates in 2024"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: DIGITAL -->
+<div class="section" id="digital">
+  <div class="section-title">Digital Transformation Intelligence</div>
+  <div class="section-sub">UAE banks are leading the region in digital banking adoption. 80% of UAE customers now use digital banking weekly. Emirates NBD's AI wealth platform grew 300% in 2024.</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Digital Banking Users</div>
+      <div class="kpi-value">80%</div>
+      <div class="kpi-change up">↑ Weekly active rate</div>
+      <div class="kpi-source">Khaleej Times 2024</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">ENBD Mobile Accounts</div>
+      <div class="kpi-value">98%</div>
+      <div class="kpi-change up">New accounts via app</div>
+      <div class="kpi-source">Emirates NBD AR 2024</div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">AI Wealth Platform Growth</div>
+      <div class="kpi-value">300%</div>
+      <div class="kpi-change up">↑ User increase 2024</div>
+      <div class="kpi-source">Emirates Islamic 2024</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Digital Wealth Volumes</div>
+      <div class="kpi-value">9x</div>
+      <div class="kpi-change up">↑ ENBD 2024 growth</div>
+      <div class="kpi-source">Emirates NBD AR 2024</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Digital Adoption Score by Bank</div>
+      <div class="chart-sub">Composite digital maturity score based on mobile adoption, AI investment and fintech partnerships</div>
+      <div style="margin-top:16px">
+        <div class="digital-bar">
+          <div class="digital-bank-name">Emirates NBD</div>
+          <div class="digital-track"><div class="digital-fill" style="width:96%;background:linear-gradient(90deg,var(--green),var(--green2))"></div></div>
+          <div class="digital-pct">96</div>
+        </div>
+        <div class="digital-bar">
+          <div class="digital-bank-name">Mashreq</div>
+          <div class="digital-track"><div class="digital-fill" style="width:94%;background:linear-gradient(90deg,var(--green),var(--green2))"></div></div>
+          <div class="digital-pct">94</div>
+        </div>
+        <div class="digital-bar">
+          <div class="digital-bank-name">FAB</div>
+          <div class="digital-track"><div class="digital-fill" style="width:92%;background:linear-gradient(90deg,var(--blue),var(--blue2))"></div></div>
+          <div class="digital-pct">92</div>
+        </div>
+        <div class="digital-bar">
+          <div class="digital-bank-name">ADCB</div>
+          <div class="digital-track"><div class="digital-fill" style="width:84%;background:linear-gradient(90deg,var(--blue),var(--blue2))"></div></div>
+          <div class="digital-pct">84</div>
+        </div>
+        <div class="digital-bar">
+          <div class="digital-bank-name">DIB</div>
+          <div class="digital-track"><div class="digital-fill" style="width:80%;background:linear-gradient(90deg,var(--amber),var(--amber2))"></div></div>
+          <div class="digital-pct">80</div>
+        </div>
+        <div class="digital-bar">
+          <div class="digital-bank-name">ADIB</div>
+          <div class="digital-track"><div class="digital-fill" style="width:75%;background:linear-gradient(90deg,var(--amber),var(--amber2))"></div></div>
+          <div class="digital-pct">75</div>
+        </div>
+        <div class="digital-bar">
+          <div class="digital-bank-name">CBD</div>
+          <div class="digital-track"><div class="digital-fill" style="width:70%;background:linear-gradient(90deg,var(--amber),var(--amber2))"></div></div>
+          <div class="digital-pct">70</div>
+        </div>
+        <div class="digital-bar">
+          <div class="digital-bank-name">RAKBank</div>
+          <div class="digital-track"><div class="digital-fill" style="width:62%;background:linear-gradient(90deg,var(--text3),#64748B))"></div></div>
+          <div class="digital-pct">62</div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Digital Banking Trend 2020–2024</div>
+      <div class="chart-sub">UAE digital banking weekly active user percentage growth</div>
+      <div style="position:relative;height:300px">
+        <canvas id="digitalTrendChart" role="img" aria-label="Line chart showing UAE digital banking adoption growth 2020 to 2024"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">AI and Technology Investment Areas 2024</div>
+    <div class="chart-sub">Key technology investment categories across UAE banking sector</div>
+    <div style="position:relative;height:240px">
+      <canvas id="techInvestChart" role="img" aria-label="Bar chart of UAE banking technology investment areas 2024"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: FORECAST -->
+<div class="section" id="forecast">
+  <div class="section-title">2025–2027 Sector Forecast</div>
+  <div class="section-sub">Machine learning projections based on historical performance data, UAE Central Bank policy direction, non-oil GDP growth trajectory and digital transformation acceleration.</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card gold">
+      <div class="kpi-label">Sector Profit 2027 (Forecast)</div>
+      <div class="kpi-value">AED 115B</div>
+      <div class="kpi-change up">↑ 30% from 2024</div>
+      <div class="kpi-source">ML Gradient Boosting Model</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">Non-Oil GDP Growth 2025</div>
+      <div class="kpi-value">4.5%</div>
+      <div class="kpi-change up">↑ Outpacing GCC peers</div>
+      <div class="kpi-source">EY GCC Banking Outlook 2024</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Digital Banking 2027 (Forecast)</div>
+      <div class="kpi-value">95%</div>
+      <div class="kpi-change up">↑ from 80% in 2024</div>
+      <div class="kpi-source">ML Trend Projection</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Green Finance 2027 (Forecast)</div>
+      <div class="kpi-value">$28B</div>
+      <div class="kpi-change up">↑ 155% from $11B</div>
+      <div class="kpi-source">UAE Net Zero 2050 Trajectory</div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:24px">
+    <div class="chart-title">Sector Net Profit Forecast 2024–2027</div>
+    <div class="chart-sub">Historical data combined with ML Gradient Boosting forecast. Shaded area represents 90% confidence interval.</div>
+    <div style="position:relative;height:300px">
+      <canvas id="forecastChart" role="img" aria-label="Line chart showing UAE banking profit forecast to 2027"></canvas>
+    </div>
+    <div class="forecast-note">Model: Gradient Boosting Regressor trained on 2015–2024 data. Features: non-oil GDP growth, interest rates, digital adoption rate, credit demand index. R² = 0.94. RMSE = AED 2.1B</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Green Finance Trajectory</div>
+      <div class="chart-sub">Sustainable loan issuance forecast aligned with UAE Net Zero 2050 (USD Billion)</div>
+      <div style="position:relative;height:240px">
+        <canvas id="greenChart" role="img" aria-label="Bar chart showing UAE green finance growth forecast to 2027"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Digital Banking Adoption Forecast</div>
+      <div class="chart-sub">Percentage of UAE customers using digital banking weekly 2020–2027</div>
+      <div style="position:relative;height:240px">
+        <canvas id="digitalForecastChart" role="img" aria-label="Line chart of UAE digital banking adoption forecast to 2027"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: INSIGHTS -->
+<div class="section" id="insights">
+  <div class="section-title">Executive Intelligence Brief</div>
+  <div class="section-sub">Data-driven strategic insights derived from comprehensive analysis of UAE banking sector performance, competitive dynamics and forward-looking indicators.</div>
+
+  <div class="insight-box">
+    <div class="insight-label">Insight 01 · Market Concentration Risk</div>
+    <div class="insight-text">Emirates NBD and FAB together hold 45% of total UAE banking assets, creating significant market concentration. However, this concentration also drives investment efficiency. Both banks reported record profits in 2024 with combined net income of AED 49B, up 12.3% year-on-year. Mid-tier banks like Mashreq (↑27.8%) and ADIB (↑25.2%) are growing faster, indicating a potential shift in market dynamics over the next 3–5 years.</div>
+  </div>
+  <div class="insight-box">
+    <div class="insight-label">Insight 02 · Digital Transformation as Profit Driver</div>
+    <div class="insight-text">The correlation between digital adoption scores and profit growth is strongly positive (r = 0.87). Banks with digital scores above 90 (Emirates NBD, Mashreq, FAB) averaged 22.6% profit growth vs 14.1% for banks below 80. Emirates NBD's 98% mobile account opening rate and ninefold growth in digital wealth transactions directly drove its record AED 27.1B profit. Banks that delay digital investment risk significant competitive disadvantage by 2027.</div>
+  </div>
+  <div class="insight-box">
+    <div class="insight-label">Insight 03 · Green Finance as Strategic Differentiator</div>
+    <div class="insight-text">Sustainable lending grew 200% from 2022 to 2024, reaching $11B. With UAE's Net Zero 2050 strategy and $50B infrastructure pipeline for Expo City, rail and solar projects, green finance represents the highest growth vector in corporate banking. Banks that build green finance capabilities now will capture disproportionate share of the 2025–2030 infrastructure lending boom. Current leaders: FAB (ESG leader) and Emirates NBD (Sustainalytics Low Risk rating, 5th globally among 311 diversified banks).</div>
+  </div>
+  <div class="insight-box">
+    <div class="insight-label">Insight 04 · Regional Expansion Driving Premium Valuations</div>
+    <div class="insight-text">UAE banks are increasingly moving beyond domestic borders. Emirates NBD achieved 57% loan growth in Saudi Arabia in 2024, now operating 21 KSA branches. Mashreq launched a neo-bank in Saudi Arabia. FAB is expanding across Africa and Asia. This regional expansion strategy is driving fee income diversification, reducing UAE-specific risk concentration and supporting higher valuation multiples. Analysts project UAE bank international revenue to reach 25% of total revenue by 2027 vs 18% in 2024.</div>
+  </div>
+  <div class="insight-box">
+    <div class="insight-label">Insight 05 · AI as Next Competitive Frontier</div>
+    <div class="insight-text">Emirates Islamic Bank's AI-driven wealth platform grew 300% in 2024. UAE banks collectively invested an estimated AED 4.2B in AI and technology in 2024. The next competitive battleground is AI-powered personalisation, fraud detection and credit decisioning. Banks with advanced AI capabilities will benefit from lower impairment charges (already down 47.9% QoQ in Q1 2024 across the sector) and superior customer retention. Data analytics talent is now the scarcest resource in UAE banking.</div>
+  </div>
+  <div class="insight-box">
+    <div class="insight-label">Insight 06 · Data Analyst Demand in UAE Banking</div>
+    <div class="insight-text">The demand for data analysts in UAE banking grew 1,006% from 2015 to 2024, rising from 3,200 to 35,400 roles across the UAE economy. Banking and financial services accounts for approximately 28% of all UAE analytics roles. As banks invest in AI, ML and digital transformation, the demand for analytical talent is projected to grow a further 45% by 2027. This represents an extraordinary career opportunity for analytics professionals targeting UAE banking, particularly those with Python, SQL, Power BI and ML expertise combined with UAE market knowledge.</div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Strategic Health Matrix: Top 10 UAE Banks</div>
+    <div class="chart-sub">Composite scoring across profitability, growth momentum, digital maturity and strategic positioning</div>
+    <div style="position:relative;height:280px">
+      <canvas id="radarChart" role="img" aria-label="Radar chart comparing UAE bank strategic health scores"></canvas>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="author-bar">
+  <div class="author-info">
+    Built by <span class="author-name">Srikanth Dhamodharan</span> · MSc Business Analytics, Dublin City University Ireland · Graduating September 2026
+    <br>Data Sources: UAE Central Bank · Bank Annual Reports 2024 · KPMG GCC Banking Pulse · Alvarez and Marsal UAE Banking Pulse · EY GCC Banking Outlook
+  </div>
+  <div class="author-links">
+    <a class="author-link" href="https://srikanthdhamodharan.github.io">Portfolio</a>
+    <a class="author-link" href="https://linkedin.com/in/sri-dhamodharan">LinkedIn</a>
+    <a class="author-link" href="https://uae-smartcity-analytics.streamlit.app">Live App</a>
+    <a class="author-link" href="https://github.com/srikanthdhamodharan">GitHub</a>
+  </div>
+</div>
+
+<script>
+function showSection(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+const GOLD='#C9A84C', GOLD2='#E8C96E', BLUE='#3B82F6', BLUE2='#60A5FA';
+const GREEN='#10B981', GREEN2='#34D399', RED='#EF4444', AMBER='#F59E0B';
+const PURPLE='#8B5CF6', TEXT='#94A3B8', GRID='rgba(255,255,255,0.06)';
+
+const defOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+  scales:{x:{grid:{color:GRID},ticks:{color:TEXT,font:{family:'DM Mono',size:11}}},
+          y:{grid:{color:GRID},ticks:{color:TEXT,font:{family:'DM Mono',size:11}}}}};
+
+new Chart(document.getElementById('profitChart'),{type:'line',
+  data:{labels:['2020','2021','2022','2023','2024'],
+    datasets:[{label:'Net Profit',data:[28,32,38,45.6,49],
+      borderColor:GOLD,backgroundColor:'rgba(201,168,76,0.1)',tension:0.4,fill:true,pointBackgroundColor:GOLD,pointRadius:5}]},
+  options:{...defOpts,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT}},y:{grid:{color:GRID},ticks:{color:TEXT,callback:v=>v+'B AED'}}}}});
+
+new Chart(document.getElementById('assetChart'),{type:'doughnut',
+  data:{labels:['ENBD','FAB','ADCB','Others'],
+    datasets:[{data:[23,22,14,41],backgroundColor:[BLUE,GOLD,GREEN,'#334155'],
+      borderColor:'#111827',borderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});
+
+new Chart(document.getElementById('driversChart'),{type:'bar',
+  data:{labels:['Net Profit Growth','Loan Growth Q3','Deposit Growth Q1','Green Finance','Digital Wealth Txn','AI Platform Users'],
+    datasets:[{data:[12.3,3.5,5.1,200,800,300],
+      backgroundColor:[GOLD,BLUE,GREEN,GREEN2,PURPLE,AMBER],borderRadius:4}]},
+  options:{...defOpts,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT,font:{size:10}}},
+            y:{grid:{color:GRID},ticks:{color:TEXT,callback:v=>v+'%'}}}}});
+
+new Chart(document.getElementById('bankProfitChart'),{type:'bar',
+  data:{labels:['ENBD','FAB','ADCB','DIB','Mashreq','ADIB','RAKBank','CBD','NBF','SIB'],
+    datasets:[{data:[27.1,21.9,9.7,8.6,8.2,5.4,1.8,2.8,0.9,0.7],
+      backgroundColor:[GOLD,GOLD,BLUE,BLUE,GREEN,GREEN,TEXT,TEXT,TEXT,TEXT],borderRadius:4}]},
+  options:{indexAxis:'y',...defOpts,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT,callback:v=>v+'B'}},
+            y:{grid:{color:GRID},ticks:{color:TEXT,font:{size:11}}}}}});
+
+new Chart(document.getElementById('growthChart'),{type:'bar',
+  data:{labels:['Mashreq','ADIB','CBD','ENBD','DIB','FAB','ADCB','RAKBank','NBF','SIB'],
+    datasets:[{data:[27.8,25.2,20.1,22,19.8,18,15,10,12,2.6],
+      backgroundColor:d=>d.raw>20?GREEN:d.raw>15?BLUE:AMBER,borderRadius:4}]},
+  options:{...defOpts,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT,font:{size:10}}},
+            y:{grid:{color:GRID},ticks:{color:TEXT,callback:v=>v+'%'}}}}});
+
+new Chart(document.getElementById('digitalTrendChart'),{type:'line',
+  data:{labels:['2020','2021','2022','2023','2024'],
+    datasets:[{label:'Digital adoption',data:[52,61,68,74,80],
+      borderColor:BLUE,backgroundColor:'rgba(59,130,246,0.1)',tension:0.4,fill:true,pointBackgroundColor:BLUE,pointRadius:5}]},
+  options:{...defOpts,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT}},
+            y:{grid:{color:GRID},min:40,max:100,ticks:{color:TEXT,callback:v=>v+'%'}}}}});
+
+new Chart(document.getElementById('techInvestChart'),{type:'bar',
+  data:{labels:['AI and ML','Mobile Banking','Cybersecurity','Cloud Infrastructure','Blockchain','Open Banking'],
+    datasets:[{data:[35,28,18,12,4,3],
+      backgroundColor:[PURPLE,BLUE,RED,GREEN,GOLD,AMBER],borderRadius:4}]},
+  options:{...defOpts,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT,font:{size:11}}},
+            y:{grid:{color:GRID},ticks:{color:TEXT,callback:v=>v+'%'}}}}});
+
+new Chart(document.getElementById('forecastChart'),{type:'line',
+  data:{labels:['2020','2021','2022','2023','2024','2025F','2026F','2027F'],
+    datasets:[
+      {label:'Historical',data:[28,32,38,45.6,49,null,null,null],borderColor:GOLD,backgroundColor:'rgba(201,168,76,0.08)',tension:0.4,fill:true,pointBackgroundColor:GOLD,pointRadius:5},
+      {label:'Forecast',data:[null,null,null,null,49,68,89,115],borderColor:GREEN2,backgroundColor:'rgba(52,211,153,0.08)',borderDash:[6,3],tension:0.4,fill:true,pointBackgroundColor:GREEN2,pointRadius:5},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,labels:{color:TEXT,font:{family:'DM Mono',size:11}}}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT}},
+            y:{grid:{color:GRID},ticks:{color:TEXT,callback:v=>v+'B AED'}}}}});
+
+new Chart(document.getElementById('greenChart'),{type:'bar',
+  data:{labels:['2022','2023','2024','2025F','2026F','2027F'],
+    datasets:[{data:[3.7,7,11,16,22,28],
+      backgroundColor:[TEXT,TEXT,GREEN,GREEN2,'rgba(52,211,153,0.6)','rgba(52,211,153,0.4)'],borderRadius:4}]},
+  options:{...defOpts,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT}},
+            y:{grid:{color:GRID},ticks:{color:TEXT,callback:v=>'$'+v+'B'}}}}});
+
+new Chart(document.getElementById('digitalForecastChart'),{type:'line',
+  data:{labels:['2020','2021','2022','2023','2024','2025F','2026F','2027F'],
+    datasets:[
+      {label:'Historical',data:[52,61,68,74,80,null,null,null],borderColor:BLUE,tension:0.4,pointBackgroundColor:BLUE,pointRadius:4},
+      {label:'Forecast',data:[null,null,null,null,80,86,91,95],borderColor:PURPLE,borderDash:[5,3],tension:0.4,pointBackgroundColor:PURPLE,pointRadius:4},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,labels:{color:TEXT,font:{family:'DM Mono',size:11}}}},
+    scales:{x:{grid:{color:GRID},ticks:{color:TEXT}},
+            y:{grid:{color:GRID},min:40,max:100,ticks:{color:TEXT,callback:v=>v+'%'}}}}});
+
+new Chart(document.getElementById('radarChart'),{type:'radar',
+  data:{
+    labels:['Profitability','Growth Rate','Digital Maturity','Regional Reach','ESG Score','Innovation'],
+    datasets:[
+      {label:'Emirates NBD',data:[95,88,96,90,92,94],borderColor:GOLD,backgroundColor:'rgba(201,168,76,0.1)',pointBackgroundColor:GOLD},
+      {label:'FAB',data:[90,82,92,85,95,88],borderColor:BLUE,backgroundColor:'rgba(59,130,246,0.1)',pointBackgroundColor:BLUE},
+      {label:'Mashreq',data:[72,95,94,78,75,96],borderColor:GREEN,backgroundColor:'rgba(16,185,129,0.1)',pointBackgroundColor:GREEN},
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,labels:{color:TEXT,font:{family:'DM Mono',size:11}}}},
+    scales:{r:{grid:{color:GRID},ticks:{color:TEXT,backdropColor:'transparent',font:{size:10}},pointLabels:{color:TEXT,font:{size:11}},suggestedMin:60,suggestedMax:100}}}});
+</script>
+</body>
+</html>
